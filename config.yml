@@ -104,7 +104,7 @@ webui:
   # 模型路径
   model: "kaggle/input/yuanshen/G_32000.pthh"
   # 配置文件路径
-  config_path: "kaggle/input/yuanshen/config.jsonn"
+  config_path: "kaggle/input/yuanshen/config.json"
   # 端口号
   port: 7860
   # 是否公开部署，对外网开放
