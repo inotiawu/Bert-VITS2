@@ -100,7 +100,7 @@ train_ms:
 # 注意， “:” 后需要加空格
 webui:
   # 推理设备
-  device: "cuda"
+  device: "cpu"
   # 模型路径
   model: "kaggle/input/yuanshen/G_32000.pthh"
   # 配置文件路径
