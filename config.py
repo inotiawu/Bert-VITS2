@@ -125,6 +125,8 @@ class Train_ms_config:
         num_workers: int,
         spec_cache: bool,
         keep_ckpts: int,
+        permanent_ckpt_start: int,
+        permanent_ckpt_interval: int,
     ):
         self.env = env  # 需要加载的环境变量
         self.base = base  # 底模配置
@@ -133,6 +135,8 @@ class Train_ms_config:
         self.num_workers = num_workers  # worker数量
         self.spec_cache = spec_cache  # 是否启用spec缓存
         self.keep_ckpts = keep_ckpts  # ckpt数量
+        self.permanent_ckpt_start = permanent_ckpt_start
+        self.permanent_ckpt_interval = permanent_ckpt_interval
 
     @classmethod
     def from_dict(cls, dataset_path: str, data: Dict[str, any]):
@@ -154,6 +158,7 @@ class Webui_config:
         port: int = 7860,
         share: bool = False,
         debug: bool = False,
+        fp16_run: bool = False,
     ):
         self.device: str = device
         self.model: str = model  # 端口号
@@ -161,6 +166,7 @@ class Webui_config:
         self.port: int = port  # 是否开启debug模式
         self.share: bool = share  # 模型路径
         self.debug: bool = debug  # 配置文件路径
+        self.fp16_run: bool = fp16_run  # 16bit加载bert和clap
         self.language_identification_library: str = (
             language_identification_library  # 语种识别库
         )
