@@ -274,9 +274,9 @@ def run():
                 utils.latest_checkpoint_path(hps.model_dir, "DUR_*.pth"),
                 net_dur_disc,
                 optim_dur_disc,
-                skip_optimizer=hps.train.skip_optimizer
-                if "skip_optimizer" in hps.train
-                else True,
+                skip_optimizer=(
+                    hps.train.skip_optimizer if "skip_optimizer" in hps.train else True
+                ),
             )
             if not optim_dur_disc.param_groups[0].get("initial_lr"):
                 optim_dur_disc.param_groups[0]["initial_lr"] = dur_resume_lr
@@ -290,9 +290,9 @@ def run():
                 utils.latest_checkpoint_path(hps.model_dir, "WD_*.pth"),
                 net_wd,
                 optim_wd,
-                skip_optimizer=hps.train.skip_optimizer
-                if "skip_optimizer" in hps.train
-                else True,
+                skip_optimizer=(
+                    hps.train.skip_optimizer if "skip_optimizer" in hps.train else True
+                ),
             )
             if not optim_wd.param_groups[0].get("initial_lr"):
                 optim_wd.param_groups[0]["initial_lr"] = wd_resume_lr
@@ -306,17 +306,17 @@ def run():
             utils.latest_checkpoint_path(hps.model_dir, "G_*.pth"),
             net_g,
             optim_g,
-            skip_optimizer=hps.train.skip_optimizer
-            if "skip_optimizer" in hps.train
-            else True,
+            skip_optimizer=(
+                hps.train.skip_optimizer if "skip_optimizer" in hps.train else True
+            ),
         )
         _, optim_d, d_resume_lr, epoch_str = utils.load_checkpoint(
             utils.latest_checkpoint_path(hps.model_dir, "D_*.pth"),
             net_d,
             optim_d,
-            skip_optimizer=hps.train.skip_optimizer
-            if "skip_optimizer" in hps.train
-            else True,
+            skip_optimizer=(
+                hps.train.skip_optimizer if "skip_optimizer" in hps.train else True
+            ),
         )
         if not optim_g.param_groups[0].get("initial_lr"):
             optim_g.param_groups[0]["initial_lr"] = g_resume_lr
@@ -362,7 +362,6 @@ def run():
         scheduler_wd = None
         wl = None
     scaler = GradScaler(enabled=hps.train.bf16_run)
-
 
     for epoch in range(epoch_str, hps.train.epochs + 1):
         if rank == 0:
@@ -473,7 +472,7 @@ def train_and_evaluate(
                 x_mask,
                 z_mask,
                 (z, z_p, m_p, logs_p, m_q, logs_q),
-                (hidden_x, logw, logw_),#, logw_sdp),
+                (hidden_x, logw, logw_),  # , logw_sdp),
                 g,
                 loss_commit,
             ) = net_g(
@@ -539,14 +538,14 @@ def train_and_evaluate(
                 optim_dur_disc.zero_grad()
                 scaler.scale(loss_dur_disc_all).backward()
                 scaler.unscale_(optim_dur_disc)
-                #torch.nn.utils.clip_grad_norm_(
-                     #parameters=net_dur_disc.parameters(), max_norm=5
-                #)
+                # torch.nn.utils.clip_grad_norm_(
+                # parameters=net_dur_disc.parameters(), max_norm=5
+                # )
                 grad_norm_dur = commons.clip_grad_value_(
                     net_dur_disc.parameters(), None
                 )
                 scaler.step(optim_dur_disc)
-            if net_wd is not None:  
+            if net_wd is not None:
                 with autocast(enabled=hps.train.bf16_run, dtype=torch.bfloat16):
                     loss_slm = wl.discriminator(
                         y.detach().squeeze(), y_hat.detach().squeeze()
@@ -583,13 +582,7 @@ def train_and_evaluate(
                 loss_fm = feature_loss(fmap_r, fmap_g)
                 loss_gen, losses_gen = generator_loss(y_d_hat_g)
 
-                loss_gen_all = (
-                    loss_gen
-                    + loss_fm
-                    + loss_mel
-                    + loss_dur
-                    + loss_kl
-                )
+                loss_gen_all = loss_gen + loss_fm + loss_mel + loss_dur + loss_kl
                 if net_dur_disc is not None:
                     loss_dur_gen, losses_dur_gen = generator_loss(y_dur_hat_g)
                     loss_gen_all += loss_dur_gen + loss_lm + loss_lm_gen
@@ -663,11 +656,14 @@ def train_and_evaluate(
                     )
 
                 if net_wd is not None:
-                    scalar_dict.update({
-                        "loss/wd/total": loss_slm,
-                        "grad_norm_wd": grad_norm_wd,
-                        "loss/g/lm": loss_lm,
-                        "loss/g/lm_gen": loss_lm_gen,})
+                    scalar_dict.update(
+                        {
+                            "loss/wd/total": loss_slm,
+                            "grad_norm_wd": grad_norm_wd,
+                            "loss/g/lm": loss_lm,
+                            "loss/g/lm_gen": loss_lm_gen,
+                        }
+                    )
                 image_dict = {
                     "slice/mel_org": utils.plot_spectrogram_to_numpy(
                         y_mel[0].data.cpu().numpy()
